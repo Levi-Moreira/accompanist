@@ -193,6 +193,13 @@ object PagerDefaults {
             snapIndex = singlePageSnapIndex,
         )
     }
+
+    @OptIn(ExperimentalFoundationApi::class)
+    @Composable
+    @ExperimentalPagerApi
+    fun flingBehavior(state: PagerState): FlingBehavior {
+        return rememberSnapFlingBehavior(lazyListState = state.lazyListState)
+    }
 }
 
 /**
@@ -227,7 +234,7 @@ fun HorizontalPager(
     itemSpacing: Dp = 0.dp,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
-    flingBehavior: FlingBehavior = rememberSnapFlingBehavior(lazyListState = state.lazyListState),
+    flingBehavior: FlingBehavior = PagerDefaults.flingBehavior(state = state),
     key: ((page: Int) -> Any)? = null,
     userScrollEnabled: Boolean = true,
     content: @Composable PagerScope.(page: Int) -> Unit,
@@ -280,7 +287,7 @@ fun VerticalPager(
     itemSpacing: Dp = 0.dp,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
-    flingBehavior: FlingBehavior = rememberSnapFlingBehavior(lazyListState = state.lazyListState),
+    flingBehavior: FlingBehavior = PagerDefaults.flingBehavior(state = state),
     key: ((page: Int) -> Any)? = null,
     userScrollEnabled: Boolean = true,
     content: @Composable PagerScope.(page: Int) -> Unit,
