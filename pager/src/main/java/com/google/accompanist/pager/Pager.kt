@@ -21,11 +21,12 @@ package com.google.accompanist.pager
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.DecayAnimationSpec
 import androidx.compose.animation.rememberSplineBasedDecay
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -42,12 +43,10 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 import dev.chrisbanes.snapper.SnapOffsets
-import dev.chrisbanes.snapper.SnapperFlingBehavior
 import dev.chrisbanes.snapper.SnapperFlingBehaviorDefaults
 import dev.chrisbanes.snapper.SnapperLayoutInfo
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
@@ -217,7 +216,7 @@ object PagerDefaults {
  * @param content a block which describes the content. Inside this block you can reference
  * [PagerScope.currentPage] and other properties in [PagerScope].
  */
-@OptIn(ExperimentalSnapperApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @ExperimentalPagerApi
 @Composable
 fun HorizontalPager(
@@ -228,10 +227,7 @@ fun HorizontalPager(
     itemSpacing: Dp = 0.dp,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
-    flingBehavior: FlingBehavior = PagerDefaults.flingBehavior(
-        state = state,
-        endContentPadding = contentPadding.calculateEndPadding(LayoutDirection.Ltr),
-    ),
+    flingBehavior: FlingBehavior = rememberSnapFlingBehavior(lazyListState = state.lazyListState),
     key: ((page: Int) -> Any)? = null,
     userScrollEnabled: Boolean = true,
     content: @Composable PagerScope.(page: Int) -> Unit,
@@ -273,7 +269,7 @@ fun HorizontalPager(
  * @param content a block which describes the content. Inside this block you can reference
  * [PagerScope.currentPage] and other properties in [PagerScope].
  */
-@OptIn(ExperimentalSnapperApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @ExperimentalPagerApi
 @Composable
 fun VerticalPager(
@@ -284,10 +280,7 @@ fun VerticalPager(
     itemSpacing: Dp = 0.dp,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
-    flingBehavior: FlingBehavior = PagerDefaults.flingBehavior(
-        state = state,
-        endContentPadding = contentPadding.calculateBottomPadding(),
-    ),
+    flingBehavior: FlingBehavior = rememberSnapFlingBehavior(lazyListState = state.lazyListState),
     key: ((page: Int) -> Any)? = null,
     userScrollEnabled: Boolean = true,
     content: @Composable PagerScope.(page: Int) -> Unit,
@@ -326,13 +319,6 @@ internal fun Pager(
     content: @Composable PagerScope.(page: Int) -> Unit,
 ) {
     require(count >= 0) { "pageCount must be >= 0" }
-
-    // Provide our PagerState with access to the SnappingFlingBehavior animation target
-    // TODO: can this be done in a better way?
-    state.flingAnimationTarget = {
-        @OptIn(ExperimentalSnapperApi::class)
-        (flingBehavior as? SnapperFlingBehavior)?.animationTarget
-    }
 
     LaunchedEffect(count) {
         state.currentPage = minOf(count - 1, state.currentPage).coerceAtLeast(0)

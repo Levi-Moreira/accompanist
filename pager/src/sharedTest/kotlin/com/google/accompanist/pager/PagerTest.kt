@@ -179,7 +179,6 @@ abstract class PagerTest {
         )
 
         assertThat(pagerState.isScrollInProgress).isTrue()
-        assertThat(pagerState.targetPage).isEqualTo(1)
 
         // Now re-enable the clock advancement and let the fling animation run
         composeTestRule.mainClock.autoAdvance = true
@@ -211,7 +210,6 @@ abstract class PagerTest {
         )
 
         assertThat(pagerState.isScrollInProgress).isTrue()
-        assertThat(pagerState.targetPage).isEqualTo(1)
 
         // Now re-enable the clock advancement and let the snap animation run
         composeTestRule.mainClock.autoAdvance = true
@@ -275,7 +273,6 @@ abstract class PagerTest {
         )
 
         assertThat(pagerState.isScrollInProgress).isTrue()
-        assertThat(pagerState.targetPage).isEqualTo(0)
 
         // Now re-enable the clock advancement and let the snap animation run
         composeTestRule.mainClock.autoAdvance = true
