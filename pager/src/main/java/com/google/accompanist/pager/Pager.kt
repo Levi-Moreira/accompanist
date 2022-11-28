@@ -20,12 +20,18 @@ package com.google.accompanist.pager
 
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.DecayAnimationSpec
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.rememberSplineBasedDecay
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.snapping.SnapFlingBehavior
+import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -42,7 +48,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
@@ -194,6 +199,35 @@ object PagerDefaults {
             snapIndex = singlePageSnapIndex,
         )
     }
+
+    @OptIn(ExperimentalFoundationApi::class)
+    @Composable
+    fun flingBehavior(
+        pagerState: PagerState,
+        lowVelocityAnimationSpec: AnimationSpec<Float> = tween(easing = LinearEasing),
+        highVelocityAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
+        snapAnimationSpec: AnimationSpec<Float> = spring(stiffness = Spring.StiffnessMediumLow),
+    ): FlingBehavior {
+        val density = LocalDensity.current
+        val snapLayoutInfoProvider = remember(pagerState) {
+            SnapLayoutInfoProvider(pagerState.lazyListState) { _, _ -> 0f }
+        }
+        return remember(
+            snapLayoutInfoProvider,
+            lowVelocityAnimationSpec,
+            highVelocityAnimationSpec,
+            snapAnimationSpec,
+            density
+        ) {
+            SnapFlingBehavior(
+                snapLayoutInfoProvider,
+                lowVelocityAnimationSpec,
+                highVelocityAnimationSpec,
+                snapAnimationSpec,
+                density
+            )
+        }
+    }
 }
 
 /**
@@ -228,10 +262,7 @@ fun HorizontalPager(
     itemSpacing: Dp = 0.dp,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
-    flingBehavior: FlingBehavior = PagerDefaults.flingBehavior(
-        state = state,
-        endContentPadding = contentPadding.calculateEndPadding(LayoutDirection.Ltr),
-    ),
+    flingBehavior: FlingBehavior = PagerDefaults.flingBehavior(pagerState = state),
     key: ((page: Int) -> Any)? = null,
     userScrollEnabled: Boolean = true,
     content: @Composable PagerScope.(page: Int) -> Unit,
@@ -284,10 +315,7 @@ fun VerticalPager(
     itemSpacing: Dp = 0.dp,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
-    flingBehavior: FlingBehavior = PagerDefaults.flingBehavior(
-        state = state,
-        endContentPadding = contentPadding.calculateBottomPadding(),
-    ),
+    flingBehavior: FlingBehavior = PagerDefaults.flingBehavior(pagerState = state),
     key: ((page: Int) -> Any)? = null,
     userScrollEnabled: Boolean = true,
     content: @Composable PagerScope.(page: Int) -> Unit,
